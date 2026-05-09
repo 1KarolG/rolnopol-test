@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.playwright/
+playwright-report/
+test-results/
+coverage/
+.env
+.env.local
+*.md
+package-lock.json
+yarn.lock

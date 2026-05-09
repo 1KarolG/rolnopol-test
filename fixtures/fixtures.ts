@@ -1,8 +1,8 @@
-import { test as base, expect} from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
-import { HomePage } from '../pages/HomePage';
+import { test as base, expect } from '@playwright/test';
 import { ApiHelper } from '../helpers/api-helper';
 import { MockHelper } from '../helpers/mock-helper';
+import { HomePage } from '../pages/HomePage';
+import { LoginPage } from '../pages/LoginPage';
 
 /**
  * Custom fixtures for Playwright tests

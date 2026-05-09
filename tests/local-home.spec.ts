@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/fixtures';
+import { expect, test } from '../fixtures/fixtures';
 
 test.describe('Local homepage', () => {
   test('loads the root URL and shows the page body', async ({ homePage, page }) => {

@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class LoginPage extends BasePage {
@@ -9,14 +9,10 @@ export class LoginPage extends BasePage {
   readonly loginForm = this.page.locator('[data-testid="login-form"]');
   readonly loginMessage = this.page.locator('[data-testid="login-message"]');
 
-  constructor(page: Page) {
-    super(page);
-  }
-
   async open() {
     await this.goto('/login.html');
 
-    if (await this.loginForm.count() === 0) {
+    if ((await this.loginForm.count()) === 0) {
       await this.goto('/');
       const loginLink = this.page.getByRole('link', { name: /login|sign in/i }).first();
       if (await loginLink.count()) {

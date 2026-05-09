@@ -1,9 +1,7 @@
-import { test, expect } from '../fixtures/fixtures';
+import { expect, test } from '../fixtures/fixtures';
 
 test.describe('Local API', () => {
-  test('OpenAPI schema is reachable and documents login and healthcheck', async ({
-    apiHelper,
-  }) => {
+  test('OpenAPI schema is reachable and documents login and healthcheck', async ({ apiHelper }) => {
     const swagger = await apiHelper.getOpenAPISchema();
     expect(swagger.openapi).toBe('3.0.0');
     expect(swagger.paths).toHaveProperty('/login');

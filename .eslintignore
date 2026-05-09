@@ -1,0 +1,8 @@
+node_modules/
+dist/
+build/
+.playwright/
+playwright-report/
+test-results/
+coverage/
+*.config.js

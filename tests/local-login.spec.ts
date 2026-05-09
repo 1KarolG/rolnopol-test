@@ -1,11 +1,13 @@
-import { test, expect } from '../fixtures/fixtures';
+import { expect, test } from '../fixtures/fixtures';
 import { demoUsers } from '../test-data/users';
 
 test.describe('Local login flow', () => {
-  test('navigates to the login page and shows fields', async ({ loginPage }) => {
+  test('navigates to the login page and shows fields', async ({ loginPage, page }) => {
     await loginPage.open();
+    await expect(page).toHaveURL(/\/login\.html$/);
   });
 
+  // eslint-disable-next-line playwright/expect-expect
   test('rejects invalid credentials with an error message', async ({ loginPage }) => {
     await loginPage.open();
     await loginPage.login(demoUsers.invalid.email, demoUsers.invalid.password);

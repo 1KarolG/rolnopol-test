@@ -1,4 +1,4 @@
-import { test as base, APIRequestContext } from '@playwright/test';
+import type { APIRequestContext } from '@playwright/test';
 import { demoUsers } from '../test-data/users';
 
 /**

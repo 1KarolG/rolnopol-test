@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/fixtures';
+import { expect, test } from '../fixtures/fixtures';
 
 test.describe('Local front-end integration', () => {
   test('mocks a local API response from client-side fetch', async ({ mockHelper }) => {

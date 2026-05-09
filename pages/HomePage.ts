@@ -1,13 +1,9 @@
-import { expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class HomePage extends BasePage {
   readonly heading = this.page.locator('h1');
   readonly loginLink = this.page.getByRole('link', { name: /login|sign in/i });
-
-  constructor(page: Page) {
-    super(page);
-  }
 
   async open() {
     await this.goto('/');

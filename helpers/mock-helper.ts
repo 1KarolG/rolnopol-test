@@ -1,4 +1,4 @@
-import { test as base, Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 /**
  * Mock helper class
@@ -23,13 +23,10 @@ export class MockHelper {
   }
 
   async evaluateFetch(url: string) {
-    return this.page.evaluate(
-      async (fetchUrl: string) => {
-        const response = await fetch(fetchUrl);
-        return response.ok ? response.json() : null;
-      },
-      url
-    );
+    return this.page.evaluate(async (fetchUrl: string) => {
+      const response = await fetch(fetchUrl);
+      return response.ok ? response.json() : null;
+    }, url);
   }
 
   async navigateAndFetch(url: string, fetchUrl: string) {
