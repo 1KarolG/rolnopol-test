@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures';
+import { test, expect } from '../fixtures/fixtures';
 
 test.describe('Local API', () => {
   test('OpenAPI schema is reachable and documents login and healthcheck', async ({

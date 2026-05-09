@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures';
+import { test, expect } from '../fixtures/fixtures';
 import { demoUsers } from '../test-data/users';
 
 test.describe('Local login flow', () => {

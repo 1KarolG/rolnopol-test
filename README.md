@@ -50,9 +50,9 @@ Each file contains `BASE_URL`, which defaults to `http://localhost:3000` for loc
 ## Project structure
 
 - `playwright.config.ts` — Playwright runner configuration and environment loading.
-- `tests/pages/` — Page Object Model classes for reusable page interactions.
-- `tests/test-data/` — Static test data such as demo credentials.
-- `tests/specs/` — End-to-end tests targeting local URL behavior and API interactions.
+- `/pages/` — Page Object Model classes for reusable page interactions.
+- `/test-data/` — Static test data such as demo credentials.
+- `/tests/` — End-to-end tests targeting local URL behavior and API interactions.
 - `.env.*` — Environment definitions for local, dev, UAT, and prod test targets.
 
 ## Test coverage
