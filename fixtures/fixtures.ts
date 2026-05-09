@@ -3,6 +3,7 @@ import { ApiHelper } from '../helpers/api-helper';
 import { MockHelper } from '../helpers/mock-helper';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
+import { ProfilePage } from '../pages/ProfilePage';
 
 /**
  * Custom fixtures for Playwright tests
@@ -11,6 +12,7 @@ import { LoginPage } from '../pages/LoginPage';
 export const test = base.extend<{
   loginPage: LoginPage;
   homePage: HomePage;
+  profilePage: ProfilePage;
   apiHelper: ApiHelper;
   mockHelper: MockHelper;
 }>({
@@ -22,6 +24,11 @@ export const test = base.extend<{
   homePage: async ({ page }, use) => {
     const homePage = new HomePage(page);
     await use(homePage);
+  },
+
+  profilePage: async ({ page }, use) => {
+    const profilePage = new ProfilePage(page);
+    await use(profilePage);
   },
 
   apiHelper: async ({ request }, use) => {
