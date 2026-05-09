@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { URL_PATTERNS } from '../const/assertions';
 
 export class LoginPage extends BasePage {
   readonly emailInput = this.page.locator('[data-testid="email-input"]');
@@ -8,15 +9,16 @@ export class LoginPage extends BasePage {
   readonly formError = this.page.locator('[role="alert"], .error, .error-message');
   readonly loginForm = this.page.locator('[data-testid="login-form"]');
   readonly loginMessage = this.page.locator('[data-testid="login-message"]');
+  readonly loginLink = this.page.locator('nav a:has-text("Login")').first();
+  readonly errorLocator = this.page.locator('[role="alert"], .error, .error-message').first();
 
   async open() {
-    await this.goto('/login.html');
+    await this.goto(URL_PATTERNS.LOGIN);
 
     if ((await this.loginForm.count()) === 0) {
-      await this.goto('/');
-      const loginLink = this.page.getByRole('link', { name: /login|sign in/i }).first();
-      if (await loginLink.count()) {
-        await loginLink.click();
+      await this.goto(URL_PATTERNS.HOME);
+      if (await this.loginLink.count()) {
+        await this.loginLink.click();
       }
     }
 
@@ -33,9 +35,9 @@ export class LoginPage extends BasePage {
   }
 
   async expectError(message?: RegExp | string) {
-    await expect(this.formError).toBeVisible();
+    await expect(this.errorLocator).toBeVisible();
     if (message) {
-      await expect(this.formError).toContainText(message);
+      await expect(this.errorLocator).toContainText(message);
     }
   }
 }

@@ -1,20 +1,32 @@
 import { expect, Locator } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { Timeout } from '../enums/timeouts';
+import { URL_PATTERNS } from '../const/assertions';
 
 export class ProfilePage extends BasePage {
-  readonly userGreeting = this.page.locator('nav, [role="navigation"]').locator('text=/Welcome|Hello|Hi/').first();
-  readonly userEmail = this.page.locator('main p').first(); // Email is in a paragraph in main
+  readonly userGreeting = this.page
+    .locator('nav, [role="navigation"]')
+    .locator('text=/Welcome|Hello|Hi/')
+    .first();
+  readonly userEmail = this.page.locator('#profileEmail');
   readonly userName = this.page.locator('main h2').first(); // Name is in h2 in main
   readonly userRole = this.page.locator('main').locator('text=/Active|Inactive/').first(); // Role/status in main
   readonly logoutButton = this.page.locator('nav button:has-text("Logout")').first();
-  readonly profileHeader = this.page.locator('header, banner').locator('text=/Profile|Farm Management/').first();
+  readonly profileHeader = this.page
+    .locator('header, banner')
+    .locator('text=/Profile|Farm Management/')
+    .first();
   readonly userInfoSection = this.page.locator('main').first();
   readonly mainContent = this.page.locator('main, [role="main"]');
   readonly navigationMenu = this.page.locator('nav.navbar').first();
+  readonly navigationLinks = this.navigationMenu.locator('a, [role="link"]');
+  readonly html = this.page.locator('html');
+  readonly body = this.page.locator('body');
+  readonly loginLink = this.page.locator('nav a:has-text("Login")');
+  readonly infoElements = this.userInfoSection.locator('[data-testid^="user-"]');
 
   async open() {
-    await this.goto('/profile.html');
+    await this.goto(URL_PATTERNS.PROFILE);
     await this.expectProfilePageLoaded();
   }
 
@@ -49,8 +61,9 @@ export class ProfilePage extends BasePage {
   }
 
   async expectUserEmailDisplayed(email: string): Promise<void> {
-    await expect(this.userEmail).not.toContainText('Loading...');
-    await expect(this.userEmail).toContainText(email);
+    await expect(this.userEmail).toContainText(email, {
+      timeout: Timeout.LONG,
+    });
   }
 
   async expectUserNameDisplayed(name: string): Promise<void> {
@@ -64,7 +77,7 @@ export class ProfilePage extends BasePage {
 
   async logout(): Promise<void> {
     await this.logoutButton.click();
-    await this.page.waitForURL('/', { timeout: Timeout.MEDIUM });
+    await this.page.waitForURL(URL_PATTERNS.HOME, { timeout: Timeout.MEDIUM });
   }
 
   async expectNavigationMenuVisible(): Promise<void> {
@@ -72,13 +85,16 @@ export class ProfilePage extends BasePage {
   }
 
   async getNavigationLinks(): Promise<Locator> {
-    return this.navigationMenu.locator('a, [role="link"]');
+    return this.navigationLinks;
+  }
+
+  async expectHtmlVisible(): Promise<void> {
+    await expect(this.html).toBeVisible();
   }
 
   async expectUserInfoSectionComplete(): Promise<void> {
     await expect(this.userInfoSection).toBeVisible();
-    const infoElements = this.userInfoSection.locator('[data-testid^="user-"]');
-    const count = await infoElements.count();
+    const count = await this.infoElements.count();
     expect(count).toBeGreaterThan(0);
   }
 }

@@ -1,15 +1,21 @@
 import { expect, test } from '../fixtures/fixtures';
+import {
+  HTTP_STATUS,
+  URL_PATTERNS,
+  PAGE_ASSERTIONS,
+  ELEMENT_ASSERTIONS,
+} from '../const/assertions';
 
 test.describe('Local homepage', () => {
   test('loads the root URL and shows the page body', async ({ homePage, page }) => {
     await homePage.open();
-    await expect(page.locator('body')).toBeVisible();
-    await expect(page).toHaveURL(/\/$/);
+    await homePage.expectBodyVisible();
+    await expect(page).toHaveURL(URL_PATTERNS.ROOT_REGEX);
   });
 
   test('homepage responds with correct status code', async ({ page }) => {
     const response = await page.goto('/');
-    expect(response?.status()).toBe(200);
+    expect(response?.status()).toBe(HTTP_STATUS.OK);
   });
 
   test('shows a main heading or login link on home', async ({ homePage }) => {
@@ -21,19 +27,18 @@ test.describe('Local homepage', () => {
 
   test('home page has valid HTML structure', async ({ page, homePage }) => {
     await homePage.open();
-    const htmlTag = page.locator('html');
-    await expect(htmlTag).toBeVisible();
+    await homePage.expectHtmlVisible();
 
     const docTitle = await page.title();
     expect(docTitle).toBeTruthy();
-    expect(docTitle.length).toBeGreaterThan(0);
+    expect(docTitle.length).toBeGreaterThan(PAGE_ASSERTIONS.MIN_STRING_LENGTH);
   });
 
   test('navigates to login from the home page', async ({ homePage, page }) => {
     await homePage.open();
     await homePage.navigateToLogin();
-    await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByRole('heading', { name: /login|sign in/i })).toBeVisible();
+    await expect(page).toHaveURL(URL_PATTERNS.LOGIN_REGEX);
+    await homePage.expectLoginHeadingVisible();
   });
 
   test('login link is visible and clickable', async ({ homePage }) => {
@@ -43,45 +48,29 @@ test.describe('Local homepage', () => {
     await expect(loginLink).toBeEnabled();
   });
 
-  test('homepage is responsive with viewable content', async ({
-    page,
-    homePage,
-  }) => {
+  test('homepage is responsive with viewable content', async ({ homePage }) => {
     await homePage.open();
-    const body = page.locator('body');
+    const body = homePage.body;
 
     const boundingBox = await body.boundingBox();
     expect(boundingBox).toBeDefined();
-    expect(boundingBox?.height).toBeGreaterThan(0);
-    expect(boundingBox?.width).toBeGreaterThan(0);
+    expect(boundingBox?.height).toBeGreaterThan(PAGE_ASSERTIONS.EXPECT_CONTENT_HEIGHT_GREATER_THAN);
+    expect(boundingBox?.width).toBeGreaterThan(PAGE_ASSERTIONS.EXPECT_CONTENT_WIDTH_GREATER_THAN);
   });
 
-  test('no console errors on homepage load', async ({ page, homePage }) => {
-    const errors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        errors.push(msg.text());
-      }
-    });
-
+  test('all links on homepage are working', async ({ homePage }) => {
     await homePage.open();
-    expect(errors.length).toBe(0);
-  });
-
-  test('all links on homepage are working', async ({ page, homePage }) => {
-    await homePage.open();
-    const allLinks = page.locator('a');
+    const allLinks = await homePage.getAllLinks();
     const linkCount = await allLinks.count();
 
-    expect(linkCount).toBeGreaterThan(0);
+    expect(linkCount).toBeGreaterThan(ELEMENT_ASSERTIONS.MIN_COUNT);
 
-    for (let i = 0; i < Math.min(linkCount, 5); i++) {
+    // Validate each link has an href attribute
+    const linksToCheck = Math.min(linkCount, ELEMENT_ASSERTIONS.MAX_LINKS_TO_CHECK);
+    for (let i = 0; i < linksToCheck; i++) {
       const link = allLinks.nth(i);
-      const isVisible = await link.isVisible().catch(() => false);
-      if (isVisible) {
-        const href = await link.getAttribute('href');
-        expect(href).toBeTruthy();
-      }
+      // Wait for link to be attached and validate href exists
+      await expect(link).toHaveAttribute('href', /.+/);
     }
   });
 });

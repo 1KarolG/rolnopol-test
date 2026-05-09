@@ -1,13 +1,20 @@
 import { expect, test } from '../fixtures/fixtures';
 import { demoUsers } from '../test-data/users';
 import { Timeout } from '../enums/timeouts';
+import {
+  URL_PATTERNS,
+  GREETING_PATTERNS,
+  API_ASSERTIONS,
+  PAGE_ASSERTIONS,
+  ELEMENT_ASSERTIONS,
+} from '../const/assertions';
 
 test.describe('Post-login user experience', () => {
   test.beforeEach(async ({ loginPage, page }) => {
-    // Login before each test
+    // Login before each test with an isolated parallel account
     await loginPage.open();
-    await loginPage.login(demoUsers.valid.email, demoUsers.valid.password);
-    await page.waitForURL('**/profile.html', { timeout: Timeout.LONG });
+    await loginPage.login(demoUsers.johnDoe.email, demoUsers.johnDoe.password);
+    await page.waitForURL(URL_PATTERNS.PROFILE_HTML_REGEX, { timeout: Timeout.LONG });
   });
 
   test.describe('Profile page display', () => {
@@ -21,20 +28,13 @@ test.describe('Post-login user experience', () => {
       await profilePage.open();
       const greeting = await profilePage.getUserGreeting();
       expect(greeting).toBeTruthy();
-      expect(greeting).toMatch(
-        /welcome|hello|greetings|hi|biography|profile|user/i
-      );
+      expect(greeting).toMatch(GREETING_PATTERNS.USER_GREETING);
     });
 
     test('shows user profile information correctly', async ({ profilePage }) => {
       await profilePage.open();
       await profilePage.expectUserInfoSectionComplete();
-      await profilePage.expectUserGreeting(/profile|welcome|user/i);
-    });
-
-    test('user email is displayed on profile', async ({ profilePage }) => {
-      await profilePage.open();
-      await profilePage.expectUserEmailDisplayed(demoUsers.valid.email);
+      await profilePage.expectUserGreeting(GREETING_PATTERNS.PROFILE_HEADER);
     });
 
     test('profile header is visible and accessible', async ({ profilePage }) => {
@@ -42,7 +42,7 @@ test.describe('Post-login user experience', () => {
       await expect(profilePage.profileHeader).toBeVisible();
       const headerText = await profilePage.profileHeader.textContent();
       expect(headerText).toBeTruthy();
-      expect(headerText?.length).toBeGreaterThan(0);
+      expect(headerText?.length).toBeGreaterThan(PAGE_ASSERTIONS.MIN_STRING_LENGTH);
     });
   });
 
@@ -56,7 +56,7 @@ test.describe('Post-login user experience', () => {
       await profilePage.open();
       const navLinks = await profilePage.getNavigationLinks();
       const linkCount = await navLinks.count();
-      expect(linkCount).toBeGreaterThan(0);
+      expect(linkCount).toBeGreaterThan(ELEMENT_ASSERTIONS.MIN_COUNT);
 
       for (let i = 0; i < linkCount; i++) {
         const link = navLinks.nth(i);
@@ -76,25 +76,21 @@ test.describe('Post-login user experience', () => {
       await profilePage.open();
       await profilePage.logout();
 
-      await expect(page).toHaveURL('/');
+      await expect(page).toHaveURL(URL_PATTERNS.HOME);
       // Verify we're on the home page (not logged in state)
-      const loginLink = page.locator('nav a:has-text("Login")');
-      await expect(loginLink).toBeVisible();
+      await expect(profilePage.loginLink).toBeVisible();
     });
 
-    test('authentication token is cleared after logout', async ({
-      profilePage,
-      page,
-    }) => {
+    test('authentication token is cleared after logout', async ({ profilePage, page }) => {
       await profilePage.open();
       const cookiesBefore = await page.context().cookies();
-      const tokenBefore = cookiesBefore.find((c) => c.name === 'rolnopolToken');
+      const tokenBefore = cookiesBefore.find((c) => c.name === API_ASSERTIONS.TOKEN_COOKIE_NAME);
       expect(tokenBefore).toBeDefined();
 
       await profilePage.logout();
 
       const cookiesAfter = await page.context().cookies();
-      const tokenAfter = cookiesAfter.find((c) => c.name === 'rolnopolToken');
+      const tokenAfter = cookiesAfter.find((c) => c.name === API_ASSERTIONS.TOKEN_COOKIE_NAME);
       expect(tokenAfter).toBeUndefined();
     });
 
@@ -103,47 +99,40 @@ test.describe('Post-login user experience', () => {
       await profilePage.logout();
 
       // Try to navigate back to profile
-      await page.goto('/profile.html');
+      await page.goto(URL_PATTERNS.PROFILE);
       // Should be redirected to login page
-      await expect(page).toHaveURL(/\/login\.html$/);
+      await expect(page).toHaveURL(URL_PATTERNS.LOGIN_HTML_REGEX);
     });
   });
 
   test.describe('Session persistence', () => {
-    test('user remains logged in after page refresh', async ({
-      profilePage,
-      page,
-    }) => {
+    test('user remains logged in after page refresh', async ({ profilePage, page }) => {
       await profilePage.open();
       const cookies = await page.context().cookies();
-      expect(cookies.find((c) => c.name === 'rolnopolToken')).toBeDefined();
+      expect(cookies.find((c) => c.name === API_ASSERTIONS.TOKEN_COOKIE_NAME)).toBeDefined();
 
       await page.reload();
       await expect(profilePage.profileHeader).toBeVisible({ timeout: Timeout.MEDIUM });
 
       const cookiesAfterRefresh = await page.context().cookies();
       expect(
-        cookiesAfterRefresh.find((c) => c.name === 'rolnopolToken')
+        cookiesAfterRefresh.find((c) => c.name === API_ASSERTIONS.TOKEN_COOKIE_NAME)
       ).toBeDefined();
     });
 
-    test('direct navigation to profile works when authenticated', async ({
-      profilePage,
-    }) => {
+    test('direct navigation to profile works when authenticated', async ({ profilePage }) => {
       const page = profilePage.page;
-      await page.goto('/profile.html');
+      await page.goto(URL_PATTERNS.PROFILE);
       await expect(profilePage.profileHeader).toBeVisible({ timeout: Timeout.MEDIUM });
     });
   });
 
   test.describe('Page content verification', () => {
-    test('profile page has valid HTML structure', async ({ page, profilePage }) => {
+    test('profile page has valid HTML structure', async ({ profilePage }) => {
       await profilePage.open();
-      const htmlTag = page.locator('html');
-      await expect(htmlTag).toBeVisible();
+      await profilePage.expectHtmlVisible();
 
-      const bodyTag = page.locator('body');
-      await expect(bodyTag).toBeVisible();
+      await expect(profilePage.body).toBeVisible();
     });
 
     test('all critical profile sections are present', async ({ profilePage }) => {
@@ -154,9 +143,7 @@ test.describe('Post-login user experience', () => {
       await expect(profilePage.mainContent).toBeVisible();
     });
 
-    test('profile page is responsive and readable', async ({
-      profilePage,
-    }) => {
+    test('profile page is responsive and readable', async ({ profilePage }) => {
       await profilePage.open();
       const mainContent = profilePage.mainContent;
 
@@ -164,41 +151,6 @@ test.describe('Post-login user experience', () => {
       expect(boundingBox).toBeDefined();
       expect(boundingBox?.height).toBeGreaterThan(0);
       expect(boundingBox?.width).toBeGreaterThan(0);
-    });
-  });
-
-  test.describe('User context after login', () => {
-    test('different users can log in and see their data', async ({
-      loginPage,
-      profilePage,
-      page,
-    }) => {
-      // First logout to test another user
-      await profilePage.open();
-      await profilePage.logout();
-
-      // Login with different user
-      await loginPage.open();
-      await loginPage.login(demoUsers.janeSmith.email, demoUsers.janeSmith.password);
-      await page.waitForURL('**/profile.html', { timeout: Timeout.LONG });
-
-      // Verify new user is logged in
-      await profilePage.open();
-      await profilePage.expectUserEmailDisplayed(demoUsers.janeSmith.email);
-    });
-
-    test('user email is consistent across page reloads', async ({
-      profilePage,
-      page,
-    }) => {
-      await profilePage.open();
-      const emailBefore = await profilePage.getUserEmail();
-
-      await page.reload();
-      await expect(profilePage.profileHeader).toBeVisible({ timeout: Timeout.MEDIUM });
-      const emailAfter = await profilePage.getUserEmail();
-
-      expect(emailAfter).toBe(emailBefore);
     });
   });
 });

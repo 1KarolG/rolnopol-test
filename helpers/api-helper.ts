@@ -38,7 +38,7 @@ export class ApiHelper {
   }
 
   async loginWithValidUser() {
-    return this.loginWithCredentials(demoUsers.valid.email, demoUsers.valid.password);
+    return this.loginWithCredentials(demoUsers.developer.email, demoUsers.developer.password);
   }
 
   async loginWithInvalidCredentials() {

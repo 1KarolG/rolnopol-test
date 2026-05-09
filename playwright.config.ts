@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 import * as dotenv from 'dotenv';
 import { Timeout } from './enums/timeouts';
 
-const envName = process.env.TEST_ENV || 'local';
+const envName = process.env.TARGET_ENV || 'local';
 const envPath = path.resolve(__dirname, `.env.${envName}`);
 dotenv.config({ path: envPath });
 

@@ -42,6 +42,29 @@ export const test = base.extend<{
   },
 });
 
+// Global cleanup fixture - clears cookies and local storage after each test
+test.afterEach(async ({ page }) => {
+  // Clear browser cookies and permissions to avoid cross-test state
+  await page.context().clearCookies();
+  await page.context().clearPermissions();
+
+  try {
+    const pageUrl = page.url();
+    if (
+      pageUrl === 'about:blank' ||
+      pageUrl.startsWith('http://') ||
+      pageUrl.startsWith('https://')
+    ) {
+      await page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+    }
+  } catch (error) {
+    // Ignore storage cleanup failures for pages without accessible storage or cross-origin contexts
+  }
+});
+
 /**
  * Re-export expect for convenience
  */
