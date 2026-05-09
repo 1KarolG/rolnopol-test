@@ -1,13 +1,28 @@
 name: Playwright Tests for RolnoPol website
 on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'Deployment environment'
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - uat
+          - prod
   push:
     branches: [ main, master ]
   pull_request:
+    types: [ closed ]
     branches: [ main, master ]
 jobs:
   test:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.merged == true }}
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    env:
+      TARGET_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.env || github.event_name == 'push' && 'dev' || github.event_name == 'pull_request' && 'uat' }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -18,7 +33,21 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests
-      run: npx playwright test
+      run: |
+        case "${TARGET_ENV}" in
+          dev)
+            npm run test:dev
+            ;;
+          uat)
+            npm run test:uat
+            ;;
+          prod)
+            npm run test:prod
+            ;;
+          *)
+            echo "Unknown TARGET_ENV=${TARGET_ENV}" && exit 1
+            ;;
+        esac
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
